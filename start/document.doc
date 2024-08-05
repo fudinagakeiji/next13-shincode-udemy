@@ -1,0 +1,89 @@
+15　layout.tsxに書いてくとheader,footerとか全体共通に適用される
+16 
+  app下にHeader.tsxにコンポーネントを作成していく
+    Linkでリンク作成、tailwindCssはclassNameに色々書いてくと適用される。
+  layout.tsxで全体適用するからHeaderコンポーネント読んであげる。
+    背景とかbodyタグに記載してあげる
+17 footerを作る。上とおんなじ感じ
+18 page.tsxでsection>components/ArticleList.tsx
+    asideも追加。
+
+19 ArticleList.tsxにImage、Linkをつかう。
+    外部のi　mage src読む時はnext.configで許可を出さないといけない。
+20 tailwindcss
+21 ブログ新規作成ぺーじ cssとか
+  start/src/app/articles/new/page.tsx
+22 json-serverを使う。
+  package.jsonにコマンドを書くことができる。
+23 SSRでブログ全記事データ取得するAPIをつくる
+  blogAPI.tsでfetchでデータ取得する。2番目の引数にSSRかSSGかISRとかを指定する。
+24API叩いてブラウザに出力する。
+  json()←JSON形式にシリアライズしてあげる
+  SSRなのでconsole.logだと表示できない。"use client"してあげる必要がある。
+  app/page.tsxでgetAllArticle関数をasync awaitで取得して、ArticleListコンポーネントに渡す。
+  ArticleList.tsxでもprops受け取る時の型指定必要、ループ処理で記事を表示する。
+25 SSRではなくCSRでAPI叩く場合
+  useEffect、useStateはクライアントサイドでしか使えないので"use client"してあげる必要がある。
+26app/error.tsxを作成する。
+  reset関数がある。
+    const Error = ({ reset }: { reset: () => void }) => {
+27 app/loading.tsx作成。
+  layout.tsxで<Suspense fallback={<Loading />}>{children}</Suspense>
+  Suspenseで囲ってfallbackを指定してあげる。
+28 記事詳細ページ
+  app/articles/[id]/page.tsxでルーティングできる。
+  url取得paramsつかう
+    const Article = ({ params }: { params: { id: string } }) => {
+      console.log(params.id);
+29ISRで詳細記事取得APIさくせい
+  fetch　第2引数ISRだとこんな感じ。    next: { revalidate: 60 },
+  notFound関数使用するにはこんな感じ。
+　import { notFound } from "next/navigation";
+　if (res.status === 404) {
+    notFound();
+  }
+30詳細記事出力
+  const detailArticles = await getDetailArticles(params.id);
+  上で取得してるならこのdetailArticles.titleとかで表示出力できる。
+    start/src/app/articles/[id]/page.tsx
+      src={`https://picsum.photos/1000/500?random=${detailArticles.id}`}
+
+31記事文字数制限
+  components/ArticleList.tsxで文字数によって表示を変える三項演算子を書く。
+    {article.content.length > 70
+                ? article.content.substring(0, 70)
+                : article.content}
+    components/ArticleCard.tsxにコンポーネント切り分ける。
+
+32footer位置調整css
+  flex-growをlayout.tsxに適用させる。
+
+33 notFoundページ作成
+  src/app/articles/not-found.tsx
+
+34 投稿ようAPI作成
+src/blogAPI.tsにcreateArticles関数を作る。
+  new Date().toISOString();現在の日時取得
+  fetch第二引数に送り方とか書く。
+35そのAPI使って新規投稿作成
+  app/articles/new/page.tsxに
+    "use client"を使ってonsubmitに関数あげる
+      型をちゃんと指定してあげる
+        const handleSubmit = async (e:React.FormEvent<HTMLFormElement>)=>{
+      それぞれの送る要素のstateを作成
+      それぞれのinput、textareaでonChange={(e) => setId(e.target.value)}を設定
+      useRouterつかって投稿したらホームに遷移する。pushとrefreshする。
+
+36投稿時のローディングアニメーション
+  loadingのstateつくって、ボタン押したときにloadingのtruefalse判断して三項演算子出だしわけ
+37投稿削除ボタン
+  src/blogAPI.tsにdeleteArticlesを作成。fetchの第二引数はmethod: "Delete",
+  src/app/articles/[id]/page.tsx
+    onclickの関数を使う時はクライアントコンポーネントを使う必要がある。
+    削除ボタンだけ別コンポーネントを作成DeleteButton
+38削除ボタン作成、useRouter使う。
+39 supabaseつかってDB利用
+  gitに接続情報載せるの良くないのでenv.localファイル作成
+40 supabase初期セットアップ
+  src/utils/supabaseClients.tsを書く
+  
